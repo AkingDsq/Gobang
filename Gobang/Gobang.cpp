@@ -1,4 +1,6 @@
-﻿#include <easyx.h>
+﻿#undef UNICODE
+#undef _UNICODE
+#include <easyx.h>
 #include <iostream>
 #define rows 15
 #define cols 15
