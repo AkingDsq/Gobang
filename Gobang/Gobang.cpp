@@ -140,6 +140,12 @@ void clean() {
     loadimage(&bgp, _T("./images/五子棋棋盘.PNG"));  //加载图片bg.jpg
     putimage(0, 0,1000, 1000, &bgp, 0, 0);  //显示图片的位置及大小
     init_piece();
+
+    //设置结束文字属性
+    settextcolor(BLACK);
+    settextstyle(20, 20, _T("楷书"));
+    setbkmode(TRANSPARENT);
+    outtextxy(350, 50, "点击ESC退出游戏");
 }
           
 //分数表
