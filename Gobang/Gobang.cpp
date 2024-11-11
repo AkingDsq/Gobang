@@ -10,9 +10,8 @@ bool first;                             //第一手
 int mod = 1;                            //mod为1是玩家对战，mod为0是人机对战
 bool md = 1;                            //md控制起始页面的输出
 ExMessage m;                             //声明一个鼠标的信息m
-int X = m.x, Y = m.y;
-int row = (m.x - 150)/50,col = (m.y - 150)/50;
-
+int row,col;
+int over = 0;// 判断是否结束
 //初始化棋盘落子情况，1为黑子，0为无子,-1为白子
 void init_piece() {
     for (int i = 0; i < rows; i++) {
@@ -42,78 +41,80 @@ bool draw_piece(int flag,int row, int col) {
         setfillcolor(BLACK);             //flag = 1时为黑子
     }
     else {                               //flag = 0时为白子
-        setfillcolor(RED);
+        setfillcolor(WHITE);
     }
 
-//当棋盘数组在（x, y）位置为空，则落子，并且黑子标记为1，白子标记为-1
-    if (piece[row][col] == 0) {
-        fillcircle((row + 3) * 50, (col + 3) * 50, 20);
+    //当棋盘数组在（x, y）位置为空，则落子，并且黑子标记为1，白子标记为-1
+    if (piece[row][col] == 0 && row >= 0 && row < rows && col >= 0 && col < cols) {
+        fillcircle(row * 50 + 150, col * 50 + 150, 20);
         if(flag == 1) piece[row][col] = 1;
         else piece[row][col] = -1;
-        return 1;
+        return true;
     }
-    else return 0;
+    else return false;
 }
 
 //五子连珠的判断
 //判断行是否五子连珠
-int check_numhang(int num, int x, int y) {
+int check_numhang(int num, int row, int col) {
+    int x = row, y = col;
     int count = 0;
-    while (piece[row][col] == piece[x / 50][y / 50]) {
-        row++;
+    while (piece[row][col] == piece[x][y]) {
+        x++;
         count++;
-        if (count == num && piece[x / 50][y / 50] == 1) return 1;
-        else if (count == num && piece[x / 50][y / 50] == -1) return -1;
-        if (piece[row][col] != piece[x / 50][y / 50]) {
-            row = row - num;
+        if (count == num && piece[row][col] == 1) return 1;
+        else if (count == num && piece[row][col] == -1) return -1;
+        if (piece[row][col] != piece[x][y]) {
+            x = x - num;
         }
     }
     return 0;
 }
 //判断列是否五子连珠
-int check_numlie(int num, int x, int y) {
+int check_numlie(int num, int row, int col) {
     int count = 0;
-    while (piece[row][col] == piece[x / 50][y / 50]) {
-        col++;
+    int x = row, y = col;
+    while (piece[row][col] == piece[x][y]) {
+        y++;
         count++;
-        if (count == num && piece[x / 50][y / 50] == 1) return 1;
-        else if (count == num && piece[x / 50][y / 50] == -1) return -1;
-        if (piece[row][col] != piece[x / 50][y / 50]) {
-            col = col - num;
+        if (count == num && piece[x][y] == 1) return 1;
+        else if (count == num && piece[x][y] == -1) return -1;
+        if (piece[row][col] != piece[x][y]) {
+            y = y - num;
         }
     }
     return 0;
 }
 //判断左斜线是否五子连珠
-int check_numlxie(int num, int x, int y) {
+int check_numlxie(int num, int row, int col) {
     int count = 0;
-    while (piece[row][col] == piece[x / 50][y / 50]) {
-        row++;
-        col++;
+    int x = row, y = col;
+    while (piece[row][col] == piece[x][y]) {
+        x++;
+        y++;
         count++;
-        if (count == num && piece[x / 50][y / 50] == 1) return 1;
-        else if (count == num && piece[x / 50][y / 50] == -1) return -1;
-        if (piece[row][col] != piece[x / 50][y / 50]) {
-            col = col - num;
-            row = row - num;
+        if (count == num && piece[x][y] == 1) return 1;
+        else if (count == num && piece[x][y] == -1) return -1;
+        if (piece[row][col] != piece[x][y]) {
+            y = y - num;
+            x = x - num;
         }
     }
     return 0;
 }
 //判断右斜线是否五子连珠
-int check_numrxie(int num, int x, int y) {
-
-    int row = x / 50, col = y / 50;
+int check_numrxie(int num, int row, int col) {
     int count = 0;
-    while (piece[row][col] == piece[x / 50][y / 50]) {
-        row++;
-        col--;
+    int x = row, y = col;
+    while (piece[row][col] == piece[x][y]) {
+        x++;
+        y--;
         count++;
-        if (count == num && piece[x / 50][y / 50] == 1) return 1;
-        else if (count == num && piece[x / 50][y / 50] == -1) return -1;
-        if (piece[row][col] != piece[x / 50][y / 50]) {
-            col = col + num;
-            row = row - num;
+        if (count == num && piece[x][y] == 1) return 1;
+        else if (count == num && piece[x][y] == -1) return -1;
+        if (piece[row][col] != piece[x][y]) {
+            y = y + num;
+            x = x - num;
         }
     }
     return 0;
@@ -123,7 +124,7 @@ int check_numrxie(int num, int x, int y) {
 void clean() {
     flag = 1;
     first = 1;
-    mod = 1;
+
     clearrectangle(0, 0, 1000, 1000);
 
     initgraph(1000, 1000);                     //图片的大小
@@ -309,7 +310,7 @@ void getscore() {
     }
 }
 
-void AI() {
+void AI(int col, int row) {
     getscore();
     if(draw_piece(0, maxx * 50, maxy * 50)) piece[maxx][maxy] = -1;
     if (check_numhang(5, maxx * 50, maxy * 50) == -1 || check_numlie(5, maxx * 50, maxy * 50) == -1 || check_numlxie(5, maxx * 50, maxy * 50) == -1 || check_numrxie(5, maxx * 50, maxy * 50) == -1) {
@@ -326,6 +327,7 @@ void AI() {
     }
 }
 
+
 int main() {
     //棋盘背景的设置
     initgraph(1000, 1000);                     //图片的大小
@@ -333,66 +335,72 @@ int main() {
     putimage(0, 0, 1000, 1000, &bgp, 0, 0);  //显示图片的位置及大小
     //棋盘的初始化
     init_piece();
-    
-    while (1) {                              //时时获取鼠标的信息
+    md = 1;
+    over = 0;
+    //游戏循环
+    while (true) {                              //时时获取鼠标的信息
         m = getmessage(EX_MOUSE | EX_KEY);
-        int X = m.x, Y = m.y;
-        int row = (m.x - 150) / 50, col = (m.y - 150) / 50;
+        row = (m.x - 150) / 50, col = (m.y - 150) / 50;
 
         //设置结束文字属性
         settextcolor(BLACK);
-        settextstyle(30, 30, _T("隶书"));
+        settextstyle(30, 30, _T("楷书"));
         setbkmode(TRANSPARENT);
         if (md) {
-            outtextxy(200, 300, "点击shift开始玩家对战");
-            outtextxy(150, 500, "点击鼠标右键开始人机对战");
-        }
-        if (m.shift) {
-            mod = 1;
-            md = 0;
-            clean();
-            
-        }
-        if (m.rbutton) {
-            md = 0;
-            clean();
-            mod = 0;
+            outtextxy(200, 300, "点击F1开始玩家对战");
+            outtextxy(200, 500, "点击F2开始人机对战");
 
+            if (md && m.vkcode == VK_F1) {
+                md = 0;
+                clean();
+                mod = 1;
+            }
+            if (md && m.vkcode == VK_F2) {
+                md = 0;
+                clean();
+                mod = 0;
+            }
         }
         //按下鼠标左键，落子
-        if (m.lbutton) {
+        if (!md && over == 0 && m.lbutton) {
             if (draw_piece(flag, row, col)) {
                 if (mod == 1) flag = (flag + 1) % 2;   //当成功落子后，更换下棋方
+                
+                if (check_numhang(5, row, col) == 1 || check_numlie(5, row, col) == 1 || check_numlxie(5, row, col) == 1 || check_numrxie(5, row, col) == 1) {
 
-                if (check_numhang(5, X, Y) == 1 || check_numlie(5, X, Y) == 1 || check_numlxie(5, X, Y) == 1 || check_numrxie(5, X, Y) == 1) {
-
+                    //设置结束文字属性
+                    settextcolor(BLACK);
                     settextstyle(60, 60, _T("隶书"));
 
-                    outtextxy(100, 300, "黑子获胜");
+                    outtextxy(250, 500, "黑子获胜");
 
                     settextstyle(30, 30, _T("楷书"));
-                    outtextxy(20, 100, "点击ctrl重新开始游戏");
-
+                    outtextxy(200, 300, "点击ctrl重新开始游戏");
+                    over = 1;
                 }
-                else if (check_numhang(5, X, Y) == -1 || check_numlie(5, X, Y) == -1 || check_numlxie(5, X, Y) == -1 || check_numrxie(5, X, Y) == -1) {
+                else if (check_numhang(5, row, col) == -1 || check_numlie(5, row, col) == -1 || check_numlxie(5, row, col) == -1 || check_numrxie(5, row, col) == -1) {
 
+                    //设置结束文字属性
+                    settextcolor(BLACK);
                     settextstyle(60, 60, _T("隶书"));
 
-                    outtextxy(100, 300, "白子获胜");
+                    outtextxy(250, 500, "白子获胜");
 
                     settextstyle(30, 30, _T("楷书"));
-                    outtextxy(20, 100, "点击ctrl重新开始游戏");
-
+                    outtextxy(200, 300, "点击ctrl重新开始游戏");
+                    over = 1;
                 }
 
                 if (mod == 0) {
-                    AI();
+                    AI(row, col);
                 }
             }
         }
         if (m.ctrl) {
-            md = 1;
             clean();
+            md = 1;
+            mod = 1;
+            over = 0;
         }
     }
     return 0;
