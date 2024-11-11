@@ -7,11 +7,18 @@ IMAGE bgp;                              //载入图片
 int flag;                           //1为黑子，0为白子
 int piece[rows][cols];                  //棋盘坐标
 bool first;                             //第一手
-int mod = 1;                            //mod为1是玩家对战，mod为0是人机对战
-bool md = 1;                            //md控制起始页面的输出
+int mod;                            //mod为1是玩家对战，mod为0是人机对战
+bool md;                            //md控制起始页面的输出
 ExMessage m;                             //声明一个鼠标的信息m
 int row,col;
-int over = 0;// 判断是否结束
+int over;                            // 判断是否结束
+int scores[rows][cols] = {0};             // 分数表
+int maxx, maxy;          //获取最大分数的坐标
+
+struct MAXSCORE {
+    int maxx, maxy;
+};
+
 //初始化棋盘落子情况，1为黑子，0为无子,-1为白子
 void init_piece() {
     for (int i = 0; i < rows; i++) {
@@ -132,9 +139,6 @@ void clean() {
     putimage(0, 0,1000, 1000, &bgp, 0, 0);  //显示图片的位置及大小
     init_piece();
 }
-
-int scores[rows][cols];
-int maxx, maxy;          //获取最大分数的坐标
           
 //分数表
 int score(int self, int ai) {                     //玩家的连子数，ai的连子数
@@ -289,7 +293,7 @@ int getscore_max(int x, int y) {
 }
 
 //遍历全图，寻找最大分数的坐标
-void getscore() {
+MAXSCORE getscore() {
     int max = 0;
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -308,22 +312,24 @@ void getscore() {
             }
         }
     }
+    MAXSCORE ms;
+    ms.maxx = maxx;
+    ms.maxy = maxy;
+    return ms;
 }
 
 void AI(int col, int row) {
-    getscore();
-    if(draw_piece(0, maxx * 50, maxy * 50)) piece[maxx][maxy] = -1;
-    if (check_numhang(5, maxx * 50, maxy * 50) == -1 || check_numlie(5, maxx * 50, maxy * 50) == -1 || check_numlxie(5, maxx * 50, maxy * 50) == -1 || check_numrxie(5, maxx * 50, maxy * 50) == -1) {
+    MAXSCORE ms = getscore();
+    if(draw_piece(0, ms.maxx, ms.maxy)) piece[maxx][maxy] = -1;
+    if (check_numhang(5, ms.maxx, ms.maxy) == -1 || check_numlie(5, ms.maxx, ms.maxy) == -1 || check_numlxie(5, ms.maxx, ms.maxy) == -1 || check_numrxie(5, ms.maxx, ms.maxy) == -1) {
         settextcolor(BLACK);
         settextstyle(60, 60, _T("隶书"));
         setbkmode(TRANSPARENT);
-        outtextxy(100, 300, "白子获胜");
-
+        outtextxy(250, 500, "白子获胜");
 
         settextstyle(30, 30, _T("楷书"));
 
-        outtextxy(20, 100, "点击ctrl重新开始游戏");
-
+        outtextxy(200, 300, "点击Backspace重新开始游戏");
     }
 }
 
@@ -356,9 +362,10 @@ int main() {
                 mod = 1;
             }
             if (md && m.vkcode == VK_F2) {
-                md = 0;
+                
                 clean();
                 mod = 0;
+                md = 0;
             }
         }
         //按下鼠标左键，落子
@@ -375,7 +382,7 @@ int main() {
                     outtextxy(250, 500, "黑子获胜");
 
                     settextstyle(30, 30, _T("楷书"));
-                    outtextxy(200, 300, "点击ctrl重新开始游戏");
+                    outtextxy(200, 300, "点击Backspace重新开始游戏");
                     over = 1;
                 }
                 else if (check_numhang(5, row, col) == -1 || check_numlie(5, row, col) == -1 || check_numlxie(5, row, col) == -1 || check_numrxie(5, row, col) == -1) {
@@ -387,7 +394,7 @@ int main() {
                     outtextxy(250, 500, "白子获胜");
 
                     settextstyle(30, 30, _T("楷书"));
-                    outtextxy(200, 300, "点击ctrl重新开始游戏");
+                    outtextxy(200, 300, "点击Backspace重新开始游戏");
                     over = 1;
                 }
 
@@ -396,11 +403,14 @@ int main() {
                 }
             }
         }
-        if (m.ctrl) {
+        if (m.vkcode == VK_BACK) {
             clean();
             md = 1;
             mod = 1;
             over = 0;
+        }
+        if (m.vkcode == VK_ESCAPE) {
+            exit(0);
         }
     }
     return 0;
